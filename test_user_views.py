@@ -115,3 +115,28 @@ class WarblerUserViewsTests(TestCase):
             self.assertNotIn('Unfollow', response)
             self.assertNotIn('Edit Profile', response)
             self.assertNotIn('Delete Profile', response)
+    
+    def test_users_show_self(self):
+        """Tests that the users_show view function displays a details page for hte user in the URL with
+        all relevant components when the user in the URL is logged in."""
+        with app.test_client() as client:
+            with client.session_transaction() as sess:
+                sess[CURR_USER_KEY] = 1
+            request = client.get('/users/1', follow_redirects=True)
+            self.assertEqual(request.status_code, 200)
+            response = request.get_data(as_text=True)
+
+            #Elements that should be in the template--header image, part of profile image, 
+            #part of user link for messages.
+            self.assertIn('class= "img-fluid w-100 h-100"', response)
+            self.assertIn('alt="Image for tuckerdiane', response)
+            self.assertIn('<a href="/users/1">', response)
+
+            #Elements that should be in the template--options to edit/delete profile.
+            self.assertIn('Edit Profile', response)
+            self.assertIn('Delete Profile', response)
+            
+            #Elements that should not be in the template: options to edit/delete profile and
+            #options to unfollow.
+            self.assertNotIn('/users/follow', response)
+            self.assertNotIn('Unfollow', response)
