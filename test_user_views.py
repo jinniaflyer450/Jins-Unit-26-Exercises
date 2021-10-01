@@ -32,7 +32,7 @@ class WarblerUserViewsTests(TestCase):
     
     def test_logout(self):
         """Tests to make sure that the '/logout' view function removes any current user from
-        the session and redirects to '/'"""
+        the session and redirects to '/' with the flashed message 'Goodbye!'"""
         with app.test_client() as client:
             with client.session_transaction() as sess:
                 sess["curr_user"] = 1
@@ -43,3 +43,4 @@ class WarblerUserViewsTests(TestCase):
             self.assertIn('<h4>New to Warbler?</h4>', response)
             with client.session_transaction() as sess:
                 self.assertIsNone(sess.get("curr_user"))
+            self.assertIn('<div class="alert alert-success">Goodbye!</div>', response)
