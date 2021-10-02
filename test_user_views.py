@@ -144,7 +144,65 @@ class WarblerUserViewsTests(TestCase):
             self.assertIn('Edit Profile', response)
             self.assertIn('Delete Profile', response)
             
-            #Elements that should not be in the template: options to edit/delete profile and
+            #Elements that should not be in the template: options to follow profile and
             #options to unfollow.
             self.assertNotIn('/users/follow', response)
             self.assertNotIn('Unfollow', response)
+    
+    def test_users_followers_no_login(self):
+        """Tests that the users_followers view function redirects to '/' with the appropriate
+        flashed message if no user is logged in."""
+        with app.test_client() as client:
+            request = client.get('/users/1/followers', follow_redirects=True)
+            self.assertEqual(request.status_code, 200)
+            response = request.get_data(as_text=True)
+            self.assertIn("Access unauthorized", response)
+            self.assertIn("<h4>New to Warbler?</h4>", response)
+    
+    def test_users_followers_login(self):
+        """Tests that the users_followers view function renders 'followers.html' with all
+        relevant information if a user is logged in."""
+        with app.test_client() as client:
+            with client.session_transaction() as sess:
+                sess[CURR_USER_KEY] = 5
+            request = client.get('/users/1/followers', follow_redirects=True)
+            self.assertEqual(request.status_code, 200)
+            response = request.get_data(as_text=True)
+
+            #Info from user 3, a follower of user 1.
+            self.assertIn('<a href="/users/3" class="card-link">', response)
+            self.assertIn('Maybe key community young ahead.', response)
+
+            #General components.
+            self.assertIn('Follow', response)
+            self.assertIn('Unfollow', response)
+    
+    def test_show_following_no_login(self):
+        """Tests that the show_following view function redirects to '/' with the appropriate flashed
+        message if no user is logged in."""
+        with app.test_client() as client:
+            request = client.get('/users/3/following', follow_redirects=True)
+            self.assertEqual(request.status_code, 200)
+            response = request.get_data(as_text=True)
+            self.assertIn("Access unauthorized", response)
+            self.assertIn("<h4>New to Warbler?</h4>", response)
+    
+    def test_show_following_login(self):
+        """Tests that the show_following view function renders 'following.html' with all relevant
+        information if a user is logged in."""
+        with app.test_client() as client:
+            with client.session_transaction() as sess:
+                sess[CURR_USER_KEY] = 5
+            request = client.get('/users/3/following', follow_redirects=True)
+            self.assertEqual(request.status_code, 200)
+            response = request.get_data(as_text=True)
+
+            #Info from user 1, a user that user 3 is following.
+            self.assertIn('<a href="/users/1" class="card-link">', response)
+            self.assertIn('Movement later fund employee site turn.', response)
+
+            #General components.
+            self.assertIn('Follow', response)
+            self.assertIn('Unfollow', response)
+    
+    
