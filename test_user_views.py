@@ -240,3 +240,66 @@ class WarblerUserViewsTests(TestCase):
             #Info that should not appear in the template--no user logged in.
             self.assertNotIn('Follow', response)
             self.assertNotIn('Unfollow', response)
+    
+    def test_list_users_login(self):
+        """Tests that the list_users view function renders 'index.html' with all relevant
+        information if there is no query string and a user is logged in."""
+        with app.test_client() as client:
+            with client.session_transaction() as sess:
+                sess[CURR_USER_KEY] = 5
+            request = client.get('/users', follow_redirects=True)
+            self.assertEqual(request.status_code, 200)
+            response = request.get_data(as_text=True)
+
+            #Info from user 1, who should appear in results.
+            self.assertIn('<a href="/users/1" class="card-link">', response)
+            self.assertIn('Movement later fund employee site turn.', response)
+
+            #Info that should appear in the template--user logged in.
+            self.assertIn('Follow', response)
+            self.assertIn('Unfollow', response)
+    
+    def test_list_users_login_query(self):
+        """Tests that the list_users view function renders 'index.html' with all relevant
+        information if there is a query string and a user is logged in."""
+        with app.test_client() as client:
+            with client.session_transaction() as sess:
+                sess[CURR_USER_KEY] = 3
+            request = client.get('/users?q=tuckerdiane', follow_redirects=True)
+            self.assertEqual(request.status_code, 200)
+            response = request.get_data(as_text=True)
+
+            #Info from user 1, who should appear in results.
+            self.assertIn('<a href="/users/1" class="card-link">', response)
+            self.assertIn('Movement later fund employee site turn.', response)
+
+            #Info from user 5, who should not appear in results.
+            self.assertNotIn('<a href="/users/5" class="card-link">', response)
+            self.assertNotIn('Cell itself institution couple should.', response)
+            
+            #Info that should appear in the template--user logged in, one result who user is following.
+            self.assertIn('Unfollow', response)
+
+            #Info that should not appear in the template--user logged in, one result who user is following.
+            self.assertNotIn('Follow', response)
+    
+    def test_list_users_no_users(self):
+        """Tests that the list_users view function renders 'index.html' with all relevant
+        information if there is a query string that excludes all users."""
+        with app.test_client() as client:
+            with client.session_transaction() as sess:
+                sess[CURR_USER_KEY] = 3
+            request = client.get('/users?q=adjiosaiojpaoieht', follow_redirects=True)
+            self.assertEqual(request.status_code, 200)
+            response = request.get_data(as_text=True)
+
+            #Info from user 5, who should not appear in results.
+            self.assertNotIn('<a href="/users/5" class="card-link">', response)
+            self.assertNotIn('Cell itself institution couple should.', response)
+
+            #Info that should not appear in the template--no users displayed.
+            self.assertNotIn('Follow', response)
+            self.assertNotIn('Unfollow', response)
+
+            #Info that should appear in the template--no users found.
+            self.assertIn('<h3>Sorry, no users found</h3>', response)
