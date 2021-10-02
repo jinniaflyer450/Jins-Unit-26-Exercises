@@ -46,17 +46,19 @@ class WarblerUserViewsTests(TestCase):
     
     def test_users_show_other(self):
         """Tests that the users_show view function displays a details page for the user in the URL with
-        all relevant components when the user whose page it is is not logged in."""
+        all relevant components when no user is logged in."""
         with app.test_client() as client:
             request = client.get('/users/1', follow_redirects=True)
             self.assertEqual(request.status_code, 200)
             response = request.get_data(as_text=True)
 
             #Elements that should be in the template--header image, part of profile image, 
-            #part of user link for messages.
+            #part of user link for messages, location, bio.
             self.assertIn('class= "img-fluid w-100 h-100"', response)
             self.assertIn('alt="Image for tuckerdiane', response)
             self.assertIn('<a href="/users/1">', response)
+            self.assertIn('Garrettburgh', response)
+            self.assertIn('Movement later fund employee site turn.', response)
 
             #Elements that should not be in the template: options to edit or delete profile.
             self.assertNotIn('Edit Profile', response)
@@ -77,10 +79,12 @@ class WarblerUserViewsTests(TestCase):
             response = request.get_data(as_text=True)
 
             #Elements that should be in the template--header image, part of profile image, 
-            #part of user link for messages.
+            #part of user link for messages, bio, location.
             self.assertIn('class= "img-fluid w-100 h-100"', response)
             self.assertIn('alt="Image for tuckerdiane', response)
             self.assertIn('<a href="/users/1">', response)
+            self.assertIn('Garrettburgh', response)
+            self.assertIn('Movement later fund employee site turn.', response)
 
             #Elements that should be in the template--option to unfollow user.
             self.assertIn('Unfollow', response)
@@ -102,10 +106,12 @@ class WarblerUserViewsTests(TestCase):
             response = request.get_data(as_text=True)
 
             #Elements that should be in the template--header image, part of profile image, 
-            #part of user link for messages.
+            #part of user link for messages, bio, location.
             self.assertIn('class= "img-fluid w-100 h-100"', response)
             self.assertIn('alt="Image for tuckerdiane', response)
             self.assertIn('<a href="/users/1">', response)
+            self.assertIn('Garrettburgh', response)
+            self.assertIn('Movement later fund employee site turn.', response)
 
             #Elements that should be in the template--option to follow user.
             self.assertIn('/users/follow', response)
@@ -127,10 +133,12 @@ class WarblerUserViewsTests(TestCase):
             response = request.get_data(as_text=True)
 
             #Elements that should be in the template--header image, part of profile image, 
-            #part of user link for messages.
+            #part of user link for messages, bio, location.
             self.assertIn('class= "img-fluid w-100 h-100"', response)
             self.assertIn('alt="Image for tuckerdiane', response)
             self.assertIn('<a href="/users/1">', response)
+            self.assertIn('Garrettburgh', response)
+            self.assertIn('Movement later fund employee site turn.', response)
 
             #Elements that should be in the template--options to edit/delete profile.
             self.assertIn('Edit Profile', response)
