@@ -205,4 +205,38 @@ class WarblerUserViewsTests(TestCase):
             self.assertIn('Follow', response)
             self.assertIn('Unfollow', response)
     
+    def test_list_users_no_login_all(self):
+        """Tests that the list_users view function renders 'index.html' with all relevant
+        information if there is no query string and no user is logged in."""
+        with app.test_client() as client:
+            request = client.get('/users', follow_redirects=True)
+            self.assertEqual(request.status_code, 200)
+            response = request.get_data(as_text=True)
+
+            #Info from user 1, who should appear in results.
+            self.assertIn('<a href="/users/1" class="card-link">', response)
+            self.assertIn('Movement later fund employee site turn.', response)
+
+            #Info that should not appear in the template--no user logged in.
+            self.assertNotIn('Follow', response)
+            self.assertNotIn('Unfollow', response)
     
+    def test_list_users_no_login_query(self):
+        """Tests that the list_users view function renders 'index.html' with all relevant
+        information if there is a query string and no user is logged in."""
+        with app.test_client() as client:
+            request = client.get('/users?q=tuckerdiane', follow_redirects=True)
+            self.assertEqual(request.status_code, 200)
+            response = request.get_data(as_text=True)
+
+            #Info from user 1, who should appear in results.
+            self.assertIn('<a href="/users/1" class="card-link">', response)
+            self.assertIn('Movement later fund employee site turn.', response)
+
+            #Info from user 3, who should not appear in results.
+            self.assertNotIn('<a href="/users/3" class="card-link">', response)
+            self.assertNotIn('Maybe key community young ahead.', response)
+
+            #Info that should not appear in the template--no user logged in.
+            self.assertNotIn('Follow', response)
+            self.assertNotIn('Unfollow', response)
