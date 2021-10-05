@@ -149,6 +149,24 @@ class User(db.Model):
         db.session.add(user)
         return user
 
+@classmethod
+def update(cls, username, email, password, image_url, header_image_url, bio):
+    """Updates a user. Similar to signup with more data."""
+
+    hashed_pwd = bcrypt.generate_password_hash(password).decode('UTF8')
+
+    user = User(
+        username=username,
+        email=email,
+        password=hashed_pwd,
+        image_url=image_url,
+        header_image_url=header_image_url,
+        bio=bio
+    )
+
+    db.session.add(user)
+    return user
+
     @classmethod
     def authenticate(cls, username, password):
         """Find user with `username` and `password`.
@@ -168,7 +186,6 @@ class User(db.Model):
                 return user
 
         return False
-
 
 class Message(db.Model):
     """An individual message ("warble")."""

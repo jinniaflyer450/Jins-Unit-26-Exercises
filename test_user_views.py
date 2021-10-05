@@ -8,6 +8,7 @@ from models import db, connect_db, Follows, Likes, User, Message
 
 app.config['SQLALCHEMY_DATABASE_URI'] = (
     os.environ.get('DATABASE_URL', 'postgresql://postgres:Ob1wankenobi@localhost/warbler_tests'))
+app.config['WTF_CSRF_ENABLED']=False
 
 class WarblerUserViewsTests(TestCase):
     """Tests for the user views for Warbler."""
@@ -303,3 +304,31 @@ class WarblerUserViewsTests(TestCase):
 
             #Info that should appear in the template--no users found.
             self.assertIn('<h3>Sorry, no users found</h3>', response)
+    
+    def test_profile_no_login(self):
+        """Tests that the 'profile' view function returns a redirect to '/' if no
+        user is logged in."""
+
+        with app.test_client() as client:
+            request = client.get('/users/profile', follow_redirects=True)
+            self.assertEqual(request.status_code, 200)
+            response = request.get_data(as_text=True)
+
+            self.assertIn('<h4>New to Warbler?</h4>', response)
+            self.assertIn('Access unauthorized', response)
+    
+    def test_profile_login_get(self):
+        """Tests the the 'profile' view function returns 'edit.html' on a GET request with
+        details for the appropriate user if a user is logged in."""
+
+        with app.test_client() as client:
+            with client.session_transaction() as sess:
+                sess[CURR_USER_KEY] = 1
+            request = client.get('/users/profile', follow_redirects=True)
+            self.assertEqual(request.status_code, 200)
+            response = request.get_data(as_text=True)
+
+            self.assertIn('<h2 class="join-message">Edit Your Profile.</h2>', response)
+            self.assertIn('<a href="/users/1" class="btn btn-outline-secondary">Cancel</a>', response)
+            self.assertIn('tuckerdiane', response)
+            self.assertNotIn('CSRF', response)

@@ -3,8 +3,9 @@ import os
 from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
+from wtforms_alchemy import ModelForm
 
-from forms import UserAddForm, LoginForm, MessageForm
+from forms import UserAddForm, LoginForm, MessageForm, UserEditForm
 from models import db, connect_db, User, Message
 
 CURR_USER_KEY = "curr_user"
@@ -95,7 +96,7 @@ def login():
 
     form = LoginForm()
 
-    if form.validate_on_submit():
+    if form.validate():
         user = User.authenticate(form.username.data,
                                  form.password.data)
 
@@ -212,7 +213,29 @@ def stop_following(follow_id):
 def profile():
     """Update profile for current user."""
 
-    # IMPLEMENT THIS
+    if not g.user:
+        flash("Access unauthorized", "danger")
+        return redirect('/')
+    
+    form_user = {'username': g.user.username, 'email': g.user.email, 'image_url': g.user.image_url,
+    'header_image_url': g.user.header_image_url, 'bio': g.user.bio, 'password': ''}
+    form = UserEditForm(obj=form_user)
+
+    if form.validate():
+        authenticated = User.authenticate(g.user.username, form.password.data)
+        if authenticated:
+            username = form.username.data
+            email = form.email.data
+            image_url = form.image_url.data
+            header_image_url = form.header_image_url.data
+            bio = form.bio.data
+            user = User.update(username, email, image_url, header_image_url, bio)
+            db.session.commit()
+            return render_template('/users/detail.html', user=g.user)
+    
+    return render_template('/users/edit.html', user_id=g.user.id, form=form)
+
+
 
 
 @app.route('/users/delete', methods=["POST"])
